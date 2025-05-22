@@ -1,0 +1,52 @@
+import streamlit as st
+import pandas as pd
+import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, accuracy_score
+
+# Konfigurasi halaman
+st.set_page_config(page_title="Prediction")
+st.title("Predictions")
+st.header("Predictions")
+
+# Load Dataset dari URL (opsi online)
+url = "https://gist.githubusercontent.com/netj/8836201/raw/6f91306ad21198ea43cb8afddc6fd6e1c0d7e8e4/iris.csv"
+dataset = pd.read_csv(url)
+
+# Tampilkan Dataframe
+st.subheader("📊 Iris Dataset")
+st.dataframe(dataset)
+
+# Bagi fitur dan target
+X = dataset.drop("variety", axis=1)
+y = dataset["variety"]
+
+# Bagi data latih dan uji
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Inisialisasi dan latih model
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+# Prediksi dan tampilkan hasil evaluasi
+y_pred = model.predict(X_test)
+st.subheader("🔍 Model Evaluation")
+st.text(f"Akurasi: {accuracy_score(y_test, y_pred):.2f}")
+st.text("Classification Report:")
+st.text(classification_report(y_test, y_pred))
+
+# Simpan model (jika perlu)
+joblib.dump(model, "model_iris.pkl")
+
+# Input prediksi manual
+st.subheader("🧪 Coba Prediksi Sendiri")
+sepal_length = st.slider("Sepal Length", float(X["sepal.length"].min()), float(X["sepal.length"].max()))
+sepal_width = st.slider("Sepal Width", float(X["sepal.width"].min()), float(X["sepal.width"].max()))
+petal_length = st.slider("Petal Length", float(X["petal.length"].min()), float(X["petal.length"].max()))
+petal_width = st.slider("Petal Width", float(X["petal.width"].min()), float(X["petal.width"].max()))
+
+# Prediksi
+if st.button("Prediksi"):
+    pred = model.predict([[sepal_length, sepal_width, petal_length, petal_width]])
+    st.success(f"Hasil Prediksi: {pred[0]}")
